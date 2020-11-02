@@ -7,18 +7,18 @@ pipeline {
         stage('Build') {
             steps {
                 sh "mvn --version"
-                sh "mvn clean install -DskipTests"
+                sh "mvn -f mule-deploy-app/pom.xml clean install -DskipTests"
             }
         } 
         stage ('Munit Test'){
         	steps {
-        		sh "mvn test"
+        		sh "mvn -f mule-deploy-app/pom.xml test"
         	}
         }
         stage('SonarQube'){
             steps {
                 withSonarQubeEnv('Sonarqube') {
-                   sh "mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.sources=src/"
+                   sh "mvn -f mule-deploy-app/pom.xml sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.sources=src/"
            
                 }
             }
@@ -41,7 +41,7 @@ pipeline {
         }
         stage('Deploy to Cloudhub'){
         	steps {
-        		sh "mvn clean package deploy -Dusername=sivendu04 -Dpassword=Mulesoft903 -DapplicationName=mule-deploy-app-sivbs -Denvironment=Sandbox -DmuleDeploy"
+        		sh "mvn -f mule-deploy-app/pom.xml clean package deploy -Dusername=sivendu04 -Dpassword=Mulesoft903 -DapplicationName=mule-deploy-app-sivbs -Denvironment=Sandbox -DmuleDeploy"
         	}
         }
     }
