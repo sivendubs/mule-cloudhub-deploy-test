@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    tools {
+        maven 'Maven' 
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh "mvn --version"
+                sh "mvn clean install -DskipTests"
+            }
+        } 
+        stage ('Munit Test'){
+        	steps {
+        		sh "mvn test"
+        	}
+        }
+        stage('SonarQube'){
+            steps {
+                withSonarQubeEnv('Sonarqube') {
+                   sh "mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.sources=src/"
+           
+                }
+            }
+        }
+        stage('Quality Gate'){
+            steps {
+                script {
+                    timeout(time: 1, unit: 'HOURS') { 
+                        sh "curl -u admin:admin -X GET -H 'Accept: application/json' http://localhost:9000/api/qualitygates/project_status?projectKey=com.mycompany:mule-deploy-app > status.json"
+                        def json = readJSON file:'status.json'
+                        echo "${json.projectStatus}"
+                        if ("${json.projectStatus.status}" != "OK") {
+                            currentBuild.result = 'FAILURE'
+                            error('Pipeline aborted due to quality gate failure.')
+                        }
+                    }
+                }
+            }
+            
+        }
+        stage('Deploy to Cloudhub'){
+        	steps {
+        		sh "mvn clean package deploy -Dusername=sivendu04 -Dpassword=Mulesoft903 -DapplicationName=mule-deploy-app-sivbs -Denvironment=Sandbox -DmuleDeploy"
+        	}
+        }
+    }
+}
