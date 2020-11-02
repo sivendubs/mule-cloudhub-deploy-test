@@ -19,7 +19,7 @@ pipeline {
         stage('SonarQube'){
             steps {
                 withSonarQubeEnv('Sonarqube') {
-                   sh "mvn -f mule-deploy-app/pom.xml sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.sources=src/"
+                   sh "mvn -f mule-deploy-app/pom.xml sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.sources=src/main"
            
                 }
             }
